@@ -1,0 +1,20 @@
+{
+  "generatedOn": "2026-10-27",
+  "skill": "imagegen",
+  "mode": "built-in image_gen",
+  "purpose": "Fictional architectural concepts for an explicitly labeled sample website design; not ATO completed projects.",
+  "assets": [
+    {
+      "path": "frontend/public/images/ato-concept-exterior.webp",
+      "prompt": "Use case: stylized-concept. Asset type: high-end architectural editorial hero image for a Costa Rican construction company website, an explicitly fictional conceptual illustration, not a real completed company project. Create one wide landscape image, 1536x1024 composition. Subject: a beautifully designed contemporary tropical home with strong horizontal lines and expressive concrete roof planes, warm natural timber soffits, full-height glazing, limestone and pale textured concrete, a modest shallow reflecting pool in the foreground, lush tropical planting framing the right and left margins. Sophisticated architecture magazine editorial 3D rendering, photorealistic material detail, very subtle film grain, natural warm late-afternoon light with quiet blue shadows. Architecture fills center and right; keep the upper-left quadrant relatively calm with blue sky for flexible cropping; structure and planting still legible as a standalone image. Camera at human eye height, architectural two-point perspective, slight wide lens without extreme distortion. Color palette natural sand, warm concrete, muted green foliage, rich blue shadows, tiny warm amber accent lighting. No people, no vehicles, no signage, no brand, no text, no watermarks, no collage, no UI, no frames. The output must be only the complete architectural image."
+    },
+    {
+      "path": "frontend/public/images/ato-concept-interior.webp",
+      "prompt": "Use case: stylized-concept. Create a fictional architectural editorial 3D rendering for a construction company website's illustrative sample gallery, not a real project. One landscape 1536x1024 image of a serene contemporary tropical interior: long warm timber ceiling, sculptural pale limestone stair floating beside a textured light concrete wall, tall glass opening to a green courtyard, cream upholstered furniture in the distance, elegant construction detailing and tactile material transitions. Sophisticated architecture magazine composition, eye-level two-point perspective, soft afternoon daylight and crisp architectural shadows, restrained sand, warm timber, deep green and muted blue palette. Building details dominate, no people, no cars, no logos, no text, no watermark, no collage. Full bleed image only, not a website mockup."
+    },
+    {
+      "path": "frontend/public/images/ato-concept-detail.webp",
+      "prompt": "Use case: stylized-concept. Create a fictional architectural editorial detail image for an illustrative construction company website gallery. One landscape 1536x1024 photorealistic architectural rendering: close view of a contemporary covered outdoor corridor joining a fair-faced concrete wall, deeply textured natural stone, a warm timber screen and a planted courtyard, striking long diagonal sunlight shadows and a small sliver of blue sky. Minimal tactile construction materials, crafted joints, calm architectural photography with 50mm lens perspective, warm beige surfaces, dark blue-gray shadows and restrained foliage. No people, no vehicles, no logos, no text, no watermark, no collage, no UI. It is an imagined architectural concept, not an actual completed company project."
+    }
+  ]
+}

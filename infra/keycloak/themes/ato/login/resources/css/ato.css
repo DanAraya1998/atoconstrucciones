@@ -1,0 +1,63 @@
+/* ATO branding over Keycloak 26.8's native keycloak.v2 forms. */
+:root {
+    color-scheme: light;
+    --pf-v5-global--FontFamily--sans-serif: Arial, Helvetica, sans-serif;
+    --pf-v5-global--primary-color--100: #013765;
+    --pf-v5-global--primary-color--200: #12517c;
+    --pf-v5-global--link--Color: #013765;
+    --pf-v5-global--link--Color--hover: #12517c;
+    --keycloak-card-top-color: #fd8103;
+}
+.login-pf body.ato-auth { margin: 0; min-height: 100vh; height: auto; background: #f8f7f3; color: #19344a; font-family: Arial, Helvetica, sans-serif; }
+.ato-auth .pf-v5-c-login { min-height: 100vh; padding: 56px 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: none; align-items: center; }
+.ato-auth .pf-v5-c-login__container { grid-area: auto; grid-column: 2; grid-row: 1; justify-self: center; width: calc(100% - 96px); max-width: 440px; margin: 0; padding: 0; grid-template-columns: minmax(0, 1fr); row-gap: 34px; }
+.ato-auth #kc-header-wrapper { position: relative; width: 162px; height: 90px; margin: 0; background: url('../img/ato-logo.jpg') left center / contain no-repeat; }
+.ato-logo-label { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.ato-auth .pf-v5-c-login__main { background: transparent; box-shadow: none; min-width: 0; }
+.ato-auth .pf-v5-c-login__main-header { padding: 24px 0 28px; border-top: 2px solid #fd8103; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; }
+.ato-auth #kc-page-title { font-size: clamp(27px, 2.4vw, 36px); line-height: 1.16; font-weight: 500; letter-spacing: -.045em; color: #013765; overflow-wrap: anywhere; }
+.ato-auth .pf-v5-c-login__main-header-utilities { align-self: start; }
+.ato-auth div.pf-v5-c-login__main-header:has(.pf-v5-c-login__main-header-utilities) { grid-template-columns: minmax(0, 1fr) auto; }
+.ato-auth #login-select-toggle { min-width: 120px; }
+.ato-auth .pf-v5-c-login__main-body, .ato-auth .pf-v5-c-login__main-footer { padding: 0; }
+.ato-auth .pf-v5-c-login__main-footer-band { margin: 24px 0 0; padding: 22px 0 0; border-top: 1px solid #d6dcd9; background: transparent; }
+.ato-auth .pf-v5-c-form { gap: 24px; }
+.ato-auth .pf-v5-c-form__label { color: #19344a; font-size: 13px; font-weight: 600; }
+.ato-auth .pf-v5-c-form-control { --pf-v5-c-form-control--before--BorderColor: #9caeb8; --pf-v5-c-form-control--after--BorderBottomColor: #013765; background: #fff; min-width: 0; }
+.ato-auth .pf-v5-c-form-control > input { min-height: 50px; padding: 12px 14px; font-size: 16px; }
+.ato-auth .pf-v5-c-form-control > select { min-height: 44px; font-size: 13px; }
+.ato-auth .pf-v5-c-input-group { min-width: 0; }
+.ato-auth .pf-v5-c-input-group__item.pf-m-fill { min-width: 0; }
+.ato-auth .pf-v5-c-button { min-height: 44px; font-size: 13px; }
+.ato-auth .pf-v5-c-button.pf-m-primary { --pf-v5-c-button--m-primary--BackgroundColor: #013765; --pf-v5-c-button--m-primary--hover--BackgroundColor: #12517c; --pf-v5-c-button--m-primary--active--BackgroundColor: #12517c; min-height: 50px; font-weight: 700; }
+.ato-auth a { color: #013765; text-underline-offset: 4px; }
+.ato-auth a:hover { color: #12517c; }
+.ato-auth :is(a, button, input, select, textarea):focus-visible { outline: 2px solid #013765; outline-offset: 4px; }
+.ato-auth #kc-registration { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 14px; }
+.ato-auth #kc-registration a, .ato-home-link { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; }
+.ato-auth .pf-v5-c-alert { margin-bottom: 24px; overflow-wrap: anywhere; }
+.ato-auth-footer { margin-top: 28px; color: #536875; font-size: 12px; line-height: 1.8; }
+.ato-home-link { gap: 12px; margin-top: 12px; }
+.ato-footer-brand { display: block; border-top: 1px solid #d6dcd9; margin-top: 28px; padding-top: 18px; font-size: 11px; letter-spacing: .08em; }
+.ato-story { position: fixed; inset: 0 auto 0 0; width: 50%; padding: 60px 5vw 70px; display: flex; flex-direction: column; justify-content: end; box-sizing: border-box; color: #fff; background: linear-gradient(180deg, #032b451f, #032b45eb 72%), url('../img/ato-concept-exterior.webp') center / cover #032b45; pointer-events: none; }
+.ato-eyebrow { display: flex; align-items: center; gap: 13px; font-size: 11px; font-weight: 600; letter-spacing: .2em; }
+.ato-eyebrow::before { content: ""; width: 9px; height: 9px; background: #fd8103; flex-shrink: 0; }
+.ato-story-title { margin: 28px 0 24px; font-size: clamp(42px, 4.4vw, 68px); line-height: 1.08; letter-spacing: -.045em; }
+.ato-story-title em { font-family: Georgia, 'Times New Roman', serif; color: #fff0d9; font-weight: 400; }
+.ato-story-copy { max-width: 320px; font-size: 14px; line-height: 1.9; }
+.ato-story-line { display: block; width: 44px; height: 2px; margin: 32px 0; background: #fd8103; }
+.ato-concept-caption { font-size: 10px; letter-spacing: .04em; }
+@media (max-width: 1000px) {
+    .ato-story { display: none; }
+    .ato-auth .pf-v5-c-login { display: block; padding: 36px 24px; }
+    .ato-auth .pf-v5-c-login__container { width: 100%; margin: 0 auto; row-gap: 24px; }
+    .ato-auth #kc-header-wrapper { width: 144px; height: 80px; }
+}
+@media (max-width: 400px) {
+    .ato-auth .pf-v5-c-login { padding: 24px 20px; }
+    .ato-auth .pf-v5-c-login__main-header, .ato-auth div.pf-v5-c-login__main-header:has(.pf-v5-c-login__main-header-utilities) { grid-template-columns: minmax(0, 1fr); }
+    .ato-auth .pf-v5-c-login__main-header-utilities { justify-self: start; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .ato-auth *, .ato-auth *::before, .ato-auth *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}

@@ -1,0 +1,57 @@
+"use client";
+import Image from "next/image";
+import { useState } from "react";
+import type { components } from "@/lib/api/schema";
+import type { Actor } from "@/lib/api/transport";
+import { ActionForm, Field, Reauthenticate, Shell, send, text, useData, type Project, type DocumentInfo } from "@/features/projects/shared";
+type Publication = components["schemas"]["Publication"];
+type Consent = components["schemas"]["Consent"];
+type SiteContent = components["schemas"]["SiteContent"];
+type Notice = components["schemas"]["PrivacyNotice"];
+type Contact = components["schemas"]["Contact"];
+export function PublicationWorkspace() { return <Shell title="Publicación y contactos">{(user) => <Editor user={user} />}</Shell>; }
+function Editor({ user }: { user: Actor }) {
+  const manager = user.roles.includes("GERENTE"), operational = manager || user.roles.includes("ASISTENTE_ADMINISTRATIVA");
+  const projects = useData<{ items: Project[] }>(operational ? user : undefined, "/api/v1/projects?size=100");
+  const [source, setSource] = useState("");
+  const documents = useData<{ items: DocumentInfo[] }>(source ? user : undefined, `/api/v1/projects/${source}/documents`);
+  const consents = useData<Consent[]>(source ? user : undefined, `/api/v1/publication-consents?projectId=${source}`);
+  const notices = useData<Notice[]>(manager ? user : undefined, "/api/v1/privacy/notices");
+  const publications = useData<Publication[]>(manager || source ? user : undefined, `/api/v1/publications${manager ? "" : `?projectId=${source}`}`);
+  const site = useData<SiteContent>(manager ? user : undefined, "/api/v1/publication-site");
+  const contacts = useData<Contact[]>(operational ? user : undefined, "/api/v1/contacts?size=100");
+  const photos = documents.data?.items.filter((d) => d.documentClass === "PHOTO" && d.state === "CLEAN") ?? [];
+  const evidence = documents.data?.items.filter((d) => d.state === "CLEAN") ?? [];
+  if (!operational) return <p>No tienes permiso para preparar publicaciones o revisar contactos.</p>;
+  const input = (data: FormData, projectId: string | null) => ({ projectId, slug: text(data, "slug"), title: text(data, "title"), summary: text(data, "summary"), category: text(data, "category"), region: text(data, "region"), year: text(data, "year") ? Number(text(data, "year")) : null, photos: [{ documentId: text(data, "photo"), consentId: text(data, "consent"), alt: text(data, "alt") }] });
+  return <div className="space-y-6"><Reauthenticate />
+    {manager && site.data && <section className="panel space-y-4"><h2 className="text-xl font-semibold">Textos del sitio · {site.data.state === "APPROVED" ? "Aprobados" : "Borrador"}</h2><p>Revisa servicios y afirmaciones antes de aprobar. Editar retira el texto vigente hasta una nueva aprobación.</p>
+      <ActionForm title="Editar textos públicos" submit="Guardar borrador de textos" run={(data, key) => send("/api/v1/publication-site", "PUT", { heading: text(data, "heading"), introduction: text(data, "introduction"), about: text(data, "about"), services: text(data, "services").split("\n").map((s) => s.trim()).filter(Boolean) }, key, site.data!.version)}>
+        <Field label="Titular de inicio" name="heading" value={site.data.heading} maxLength={160} /><label>Presentación<textarea name="introduction" defaultValue={site.data.introduction} required maxLength={2000} /></label><label>Texto de ATO<textarea name="about" defaultValue={site.data.about} required maxLength={4000} /></label><label>Servicios (uno por línea, máximo ocho)<textarea name="services" defaultValue={site.data.services.join("\n")} required /></label>
+      </ActionForm>{site.data.state === "DRAFT" && <ActionForm title="Aprobar textos públicos" submit="Aprobar textos" run={(_, key) => send("/api/v1/publication-site/approve", "POST", undefined, key, site.data!.version)}><p>Confirmo que los textos describen servicios y hechos revisados de ATO.</p></ActionForm>}
+    </section>}
+    <section className="panel space-y-5"><h2 className="text-xl font-semibold">Preparar galería</h2><label>Obra que conserva las fotografías<select value={source} onChange={(e) => setSource(e.target.value)}><option value="">Seleccionar obra</option>{projects.data?.items.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
+      <p className="text-sm text-slate-600">Una ficha de portafolio independiente conserva el origen privado de sus fotos y no crea contratos ni movimientos financieros. Revisa rostros, placas, domicilios y datos visibles; la conversión elimina metadatos.</p>
+      {source && documents.isPending && <p role="status">Consultando fotografías…</p>}{documents.error && <p role="alert">No se pudieron consultar las fotografías de esta obra.</p>}{source && documents.data && photos.length === 0 && <p>Carga una fotografía en la obra y espera su validación antes de preparar una ficha.</p>}
+      {manager && source && <ActionForm title="Registrar consentimiento para el sitio" submit="Guardar consentimiento" run={(data, key) => send("/api/v1/privacy/consents", "POST", { projectId: source, documentId: text(data, "photo"), noticeId: text(data, "notice"), evidenceId: text(data, "evidence"), purpose: "PORTFOLIO", channels: "WEBSITE", expiresOn: text(data, "expiresOn") }, key)}>
+        <label>Fotografía autorizada<select name="photo" required>{photos.map((d) => <option key={d.id} value={d.id}>{d.filename}</option>)}</select></label>
+        <label>Aviso aprobado<select name="notice" required>{notices.data?.filter((n) => n.state === "APPROVED").map((n) => <option key={n.id} value={n.id}>Versión {n.revision}</option>)}</select></label>
+        <label>Evidencia del consentimiento<select name="evidence" required>{evidence.map((d) => <option key={d.id} value={d.id}>{d.filename}</option>)}</select></label><Field label="Vigente hasta" name="expiresOn" type="date" /><p>La evidencia debe cubrir publicación en este sitio, la fotografía y las personas identificables. No se presume consentimiento por cargar una foto.</p>
+      </ActionForm>}
+      {source && <ActionForm title="Crear ficha pública en borrador" submit="Preparar ficha" run={(data, key) => send("/api/v1/publications", "POST", input(data, manager && text(data, "independent") === "on" ? null : source), key)}>
+        <PublicationFields />{manager && <label className="flex items-center gap-3"><input name="independent" type="checkbox" className="!w-5" />Ficha de portafolio independiente</label>}
+        <label>Fotografía de portada<select name="photo" required>{photos.map((d) => <option key={d.id} value={d.id}>{d.filename}</option>)}</select></label>
+        <label>Consentimiento vigente<select name="consent" required>{consents.data?.filter((c) => !c.withdrawnAt && c.purpose === "PORTFOLIO" && c.channels === "WEBSITE").map((c) => <option key={c.id} value={c.id}>{photos.find((d) => d.id === c.documentId)?.filename ?? "Fotografía"} · vence {c.expiresOn}</option>)}</select></label>
+        <Field label="Descripción accesible de la fotografía" name="alt" maxLength={300} />
+      </ActionForm>}
+    </section>
+    <section className="space-y-4"><h2 className="text-xl font-semibold">Fichas editoriales</h2>{publications.error && <p role="alert">No se pudieron consultar las fichas.</p>}{publications.data?.length === 0 && <p>No hay fichas preparadas.</p>}{publications.data?.map((p) => <article key={p.id} className="panel space-y-4"><h3 className="text-xl font-semibold">{p.title}</h3><p>{p.state === "DRAFT" ? "Borrador" : p.state === "WITHDRAWN" ? "Retirada" : p.publiclyAvailable ? "Publicada" : "Distribución bloqueada por autorización"} · /proyectos/{p.slug}</p><p className="whitespace-pre-line">{p.summary}</p><div className="grid gap-4 md:grid-cols-3">{p.photos.map((a) => <Image unoptimized key={a.id} src={`/api/v1/publications/${p.id}/assets/${a.id}/preview`} alt={a.alt} width={a.width} height={a.height} sizes="(max-width: 768px) 100vw, 33vw" className="h-auto w-full rounded-lg" />)}</div>
+      {p.state === "PUBLISHED" && p.publiclyAvailable && <a className="inline-block py-3 underline" href={`/proyectos/${p.slug}`} target="_blank" rel="noopener">Ver ficha pública</a>}
+      {p.state !== "PUBLISHED" && <ActionForm title={`Editar ficha ${p.title}`} submit="Guardar revisión editorial" run={(data, key) => send(`/api/v1/publications/${p.id}`, "PUT", { ...input(data, p.projectId ?? null), photos: p.photos.map((photo) => ({ documentId: photo.documentId, consentId: photo.consentId, alt: photo.alt })) }, key, p.version)}><PublicationFields publication={p} /><p>Se conservan las fotografías y se vuelve a comprobar su consentimiento. Para otra selección prepara una ficha nueva.</p></ActionForm>}
+      {manager && p.state === "DRAFT" && <ActionForm title={`Publicar ${p.title}`} submit="Publicar ficha" run={(data, key) => send(`/api/v1/publications/${p.id}/publish`, "POST", { reason: text(data, "reason"), privacyReviewed: data.get("privacyReviewed") === "on" }, key, p.version)}><Field label="Motivo de aprobación" name="reason" maxLength={1000} /><label className="flex items-start gap-3"><input name="privacyReviewed" type="checkbox" required className="!w-5 shrink-0" /><span>Revisé las fotos y los textos: no revelan datos privados; las personas identificables cuentan con consentimiento suficiente.</span></label></ActionForm>}
+      {manager && p.state === "PUBLISHED" && <ActionForm title={`Retirar ${p.title}`} submit="Retirar ficha" run={(data, key) => send(`/api/v1/publications/${p.id}/withdraw`, "POST", { reason: text(data, "reason") }, key, p.version)}><Field label="Motivo de retirada" name="reason" maxLength={1000} /></ActionForm>}
+    </article>)}</section>
+    <section id="contactos" className="space-y-4"><h2 className="text-xl font-semibold">Contactos recibidos</h2>{contacts.error && <p>La consulta requiere gerencia o una delegación activa de contacto.</p>}{contacts.data?.length === 0 && <p>No hay consultas recibidas.</p>}{contacts.data?.map((c) => <article className="panel space-y-3" key={c.id}><h3 className="font-semibold">{c.name}</h3><p>{c.email}</p><p className="whitespace-pre-line">{c.message}</p><p className="text-sm">Notificación: {c.deliveryState === "SENT" ? "Enviada al servidor de correo" : c.deliveryState === "DEAD" ? "Reintentos agotados" : "Pendiente"} · Intentos: {c.attempts}. No acredita lectura.</p>{manager && c.deliveryState === "DEAD" && <ActionForm title="Reintentar notificación" submit="Reencolar notificación" run={(_, key) => send(`/api/v1/contacts/${c.id}/retry`, "POST", undefined, key)}><p>El correo podría haberse aceptado antes de un fallo de confirmación; un reintento puede duplicar la notificación.</p></ActionForm>}</article>)}</section>
+  </div>;
+}
+function PublicationFields({ publication: p }: { publication?: Publication }) { return <><Field label="Título público" name="title" value={p?.title} maxLength={160} /><Field label="URL de la ficha (palabras con guiones)" name="slug" value={p?.slug} maxLength={100} /><label>Descripción pública<textarea name="summary" defaultValue={p?.summary} required maxLength={3000} /></label><Field label="Categoría" name="category" value={p?.category} maxLength={100} /><Field label="Región general (sin dirección exacta)" name="region" value={p?.region} required={false} maxLength={100} /><Field label="Año (opcional)" name="year" type="number" value={p?.year ? String(p.year) : undefined} required={false} min="1900" max="2200" /></>; }

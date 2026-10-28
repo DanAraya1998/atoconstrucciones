@@ -31,3 +31,16 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Configuración local y artefactos frontend
+.env
+.env.*
+!.env.example
+node_modules/
+.next/
+playwright-report/
+test-results/
+*.tsbuildinfo
+.m0-local/
+__pycache__/
+*.pyc

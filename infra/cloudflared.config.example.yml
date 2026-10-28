@@ -1,0 +1,12 @@
+# Plantilla revisable: sustituir UUID y ruta de credenciales fuera de Git.
+# No ejecutar hasta completar los gates de docs/22-operacion-m4.md.
+tunnel: REPLACE_WITH_TUNNEL_UUID
+credentials-file: /etc/ato/secrets/cloudflare-tunnel.json
+metrics: 127.0.0.1:20241
+ingress:
+  - hostname: atoconstrucciones.com
+    path: ^/idp(/.*)?$
+    service: http://127.0.0.1:8180
+  - hostname: atoconstrucciones.com
+    service: http://127.0.0.1:3000
+  - service: http_status:404

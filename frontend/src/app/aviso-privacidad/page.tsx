@@ -1,0 +1,4 @@
+import { publicData, publicMetadata, type Notice } from "@/features/publication/public-data";
+export const dynamic = "force-dynamic";
+export const metadata = publicMetadata("Aviso de privacidad", "/aviso-privacidad", "Aviso aprobado para el sitio de ATO Construcciones.");
+export default async function Privacy() { const n = await publicData<Notice>("privacy-notice"); return <section className="mx-auto max-w-3xl"><h1 className="text-3xl font-semibold">Aviso de privacidad</h1>{n ? <div className="panel mt-8 space-y-5"><p>Versión {n.revision}</p><p>Responsable: {n.controllerName}</p><p>Contacto: <a href={`mailto:${n.contactEmail}`} className="underline">{n.contactEmail}</a></p><p className="whitespace-pre-line leading-relaxed">{n.content}</p></div> : <p className="panel mt-8">El aviso de privacidad está pendiente. El formulario de contacto permanece deshabilitado.</p>}</section>; }

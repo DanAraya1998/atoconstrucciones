@@ -1,0 +1,36 @@
+{
+  "version": "4.4",
+  "retrievedOn": "2026-10-08",
+  "files": [
+    {
+      "file": "FacturaElectronica.xsd",
+      "source": "https://www.hacienda.go.cr/docs/FacturaElectronica_V4.4.xsd.xml",
+      "sha256": "4d7a1718cf5b09a4816503c08d1701c37b7beca5f212dd82f18d1d3a9a3042ba"
+    },
+    {
+      "file": "TiqueteElectronico.xsd",
+      "source": "https://www.hacienda.go.cr/docs/TiqueteElectronico_V4.4.xsd.xml",
+      "sha256": "5184857d0f5d9777b898bd1c129bd3e8936d37362ede6b3b975b36fe5345cc41"
+    },
+    {
+      "file": "FacturaElectronicaCompra.xsd",
+      "source": "https://www.hacienda.go.cr/docs/FacturaElectronicaCompra_V4.4.xsd.xml",
+      "sha256": "f4c14332bd47beafcf7f5ce6b618a016ee71a940501177e173e42c8a2a2351e1"
+    },
+    {
+      "file": "NotaCreditoElectronica.xsd",
+      "source": "https://www.hacienda.go.cr/docs/NotaCreditoElectronica_V4.4.xsd.xml",
+      "sha256": "3a0142010e59126b22d42f736a0f54af38f473d59564e311deca9ee4ccc824a4"
+    },
+    {
+      "file": "NotaDebitoElectronica.xsd",
+      "source": "https://www.hacienda.go.cr/docs/NotaDebitoElectronica_V4.4.xsd.xml",
+      "sha256": "f92bf9d4b83f2da9892b5658f8b4e39347ced871bd15c03b5d6437de7bc4fe94"
+    },
+    {
+      "file": "xmldsig-core-schema.xsd",
+      "source": "https://www.w3.org/TR/2002/REC-xmldsig-core-20020212/xmldsig-core-schema.xsd",
+      "sha256": "35cf8197da812c85e40d57891b35c94187569ed474a2dac813ce5090dafcd35c"
+    }
+  ]
+}

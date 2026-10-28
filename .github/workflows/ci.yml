@@ -1,0 +1,118 @@
+name: M0–M4 quality
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: ato-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: temurin
+          java-version: '27'
+          cache: maven
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24.21.0'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Documentation, secrets and controlled failures
+        run: |
+          python3 scripts/check_project.py
+          python3 scripts/test_checks.py
+      - name: API compatibility with PR base
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if git cat-file -e "$BASE_SHA:docs/openapi/m4.json" 2>/dev/null; then
+            git show "$BASE_SHA:docs/openapi/m4.json" > /tmp/ato-openapi-base.json
+            python3 scripts/check_project.py --baseline /tmp/ato-openapi-base.json
+          elif git cat-file -e "$BASE_SHA:docs/openapi/m3.json" 2>/dev/null; then
+            git show "$BASE_SHA:docs/openapi/m3.json" > /tmp/ato-openapi-base.json
+            python3 scripts/check_project.py --baseline /tmp/ato-openapi-base.json
+          elif git cat-file -e "$BASE_SHA:docs/openapi/m2.json" 2>/dev/null; then
+            git show "$BASE_SHA:docs/openapi/m2.json" > /tmp/ato-openapi-base.json
+            python3 scripts/check_project.py --baseline /tmp/ato-openapi-base.json
+          elif git cat-file -e "$BASE_SHA:docs/openapi/m1.json" 2>/dev/null; then
+            git show "$BASE_SHA:docs/openapi/m1.json" > /tmp/ato-openapi-base.json
+            python3 scripts/check_project.py --baseline /tmp/ato-openapi-base.json
+          elif git cat-file -e "$BASE_SHA:docs/openapi/m0.json" 2>/dev/null; then
+            git show "$BASE_SHA:docs/openapi/m0.json" > /tmp/ato-openapi-base.json
+            python3 scripts/check_project.py --baseline /tmp/ato-openapi-base.json
+          fi
+      - name: Antivirus for M1
+        run: |
+          docker compose --profile m1 up -d clamav
+          for attempt in $(seq 1 60); do
+            if docker compose exec -T clamav clamdscan --ping=1; then break; fi
+            sleep 2
+          done
+          docker compose exec -T clamav clamdscan --ping=1
+      - name: Backend, PostgreSQL 18, Drive protocol and antivirus integration
+        run: ATO_M1_INFRA=1 ./mvnw --batch-mode --no-transfer-progress clean verify
+      - name: Reproducible frontend and generated contract
+        run: |
+          npm ci --prefix frontend
+          npm ls --prefix frontend --all
+          npm run api:generate --prefix frontend
+          git diff --exit-code -- frontend/src/lib/api/schema.d.ts
+          npm run lint --prefix frontend
+          npm run typecheck --prefix frontend
+          npm run test --prefix frontend
+          npm audit --prefix frontend --audit-level=high
+          npm run build --prefix frontend
+      - name: Browser and real OIDC environment
+        run: |
+          python3 scripts/dev-env.py
+          docker compose up -d --wait postgres
+          docker compose up -d keycloak
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://localhost:8180/realms/ato/.well-known/openid-configuration > /dev/null; then break; fi
+            sleep 2
+          done
+          curl --fail --silent http://localhost:8180/realms/ato/.well-known/openid-configuration > /dev/null
+          python3 scripts/run-backend.py --jar > /tmp/ato-backend-ci.log 2>&1 &
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:8080/actuator/health/readiness; then break; fi
+            sleep 2
+          done
+          curl --fail --silent http://127.0.0.1:8080/actuator/health/readiness
+          cd frontend
+          npx playwright install --with-deps chromium
+          ATO_E2E_KEYCLOAK=1 npm run test:e2e
+      - name: M1–M4 browser with isolated PostgreSQL and real OIDC
+        run: |
+          ./mvnw --batch-mode --no-transfer-progress dependency:build-classpath -Dmdep.outputFile=target/m2-test-classpath.txt
+          python3 scripts/run-m2-browser.py --milestone m4 > /tmp/ato-m2-browser-ci.log 2>&1 &
+          m2_backend_pid=$!
+          trap 'kill "$m2_backend_pid"' EXIT
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:9192/actuator/health/readiness > /dev/null; then break; fi
+            sleep 2
+          done
+          curl --fail --silent http://127.0.0.1:9192/actuator/health/readiness
+          ATO_BACKEND_ORIGIN=http://127.0.0.1:9192 npm run build --prefix frontend
+          ATO_BACKEND_ORIGIN=http://127.0.0.1:9192 ATO_E2E_ACCOUNTS=1 ATO_E2E_M1=1 ATO_E2E_M3=1 ATO_E2E_M2=1 ATO_E2E_M4=1 ATO_E2E_KEYCLOAK=1 npm run test:e2e --prefix frontend
+          python3 scripts/verify-m2-restore.py --milestone m4 --docker
+          python3 scripts/run-m4-restored.py > /tmp/ato-m4-restored-ci.log 2>&1 &
+          m4_restored_pid=$!
+          trap 'kill "$m4_restored_pid" "$m2_backend_pid"' EXIT
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:9292/actuator/health/readiness > /dev/null; then break; fi
+            sleep 2
+          done
+          curl --fail --silent http://127.0.0.1:9292/actuator/health/readiness
+          ATO_BACKEND_ORIGIN=http://127.0.0.1:9292 npm run build --prefix frontend
+          ATO_BACKEND_ORIGIN=http://127.0.0.1:9292 ATO_E2E_M4_RESTORE=1 npm run test:e2e --prefix frontend -- tests/e2e/m4-restore.spec.ts
+      - name: Stop local CI services
+        if: always()
+        run: docker compose --profile m1 down
